@@ -1,0 +1,7 @@
+{
+  "name": "Aqua Sense",
+  "description": "Smart water demand forecasting for Andheri, utilizing ML models and AI reasoning based on temperature and local festivals.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}
