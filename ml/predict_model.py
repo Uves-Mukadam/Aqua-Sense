@@ -1,32 +1,42 @@
+
 import numpy as np
 import pickle
 import os
 
-def get_prediction(temp, festival_active):
+"""
+LEARNING OBJECTIVE: Inference
+Inference is just taking the 'Weights' we learned during training 
+and applying them to a new day's weather and events.
+"""
+
+def get_prediction(temp_input, is_festival):
     model_path = 'model/water_demand_model.pkl'
     
-    # Auto-train if model doesn't exist
+    # 1. Load the learned weights
     if not os.path.exists(model_path):
         from ml.train_model import train_demand_model
-        theta = train_demand_model()
+        weights = train_demand_model()
     else:
         with open(model_path, 'rb') as f:
-            theta = pickle.load(f)
+            weights = pickle.load(f)
             
-    # features: [1, temp, festival_active]
-    features = np.array([1, temp, 1 if festival_active else 0])
-    prediction_mld = np.dot(theta, features)
+    # 2. Apply the Weights (The Math)
+    # weights[0] = Baseline
+    # weights[1] = Temperature Multiplier
+    # weights[2] = Festival Multiplier
     
-    # Decompose for visualization
-    base_contribution = theta[0] # Fixed baseline + inherent city factors
-    temp_contribution = theta[1] * temp
-    fest_contribution = theta[2] * (1 if festival_active else 0)
+    base_mld = weights[0]
+    heat_impact_mld = weights[1] * temp_input
+    festival_impact_mld = weights[2] * (1 if is_festival else 0)
+    
+    # Total = Base + HeatEffect + FestivalEffect
+    total_prediction = base_mld + heat_impact_mld + festival_impact_mld
     
     return {
-        "total_mld": float(prediction_mld),
+        "total_mld": float(total_prediction),
         "breakdown": {
-            "base_mld": float(base_contribution),
-            "temp_mld": float(temp_contribution),
-            "fest_mld": float(fest_contribution)
+            "base_mld": float(base_mld),
+            "temp_mld": float(heat_impact_mld),
+            "fest_mld": float(festival_impact_mld)
         }
     }

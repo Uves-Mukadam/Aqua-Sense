@@ -1,19 +1,29 @@
 
 import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
+// Added import for node:process to ensure types for process.cwd() are correctly recognized in the build context
+import process from 'node:process';
 
 export default defineConfig(({ mode }) => {
-  // Load env file from directory based on `mode`. Cast process to any to fix missing 'cwd' type in certain build environments.
-  const env = loadEnv(mode, (process as any).cwd(), '');
+  // Load env file from the current directory
+  const env = loadEnv(mode, process.cwd(), '');
+  
   return {
     plugins: [react()],
     define: {
-      // This ensures process.env.API_KEY is available in the browser code
-      'process.env.API_KEY': JSON.stringify(env.API_KEY),
+      // This ensures 'process.env.API_KEY' is replaced with the actual value at build/dev time
+      'process.env.API_KEY': JSON.stringify(env.API_KEY || ''),
     },
     server: {
       port: 5173,
-      host: true
+      proxy: {
+        // Redirects frontend /api calls to the Flask backend on port 5000
+        '/api': {
+          target: 'http://localhost:5000',
+          changeOrigin: true,
+          secure: false,
+        }
+      }
     }
   };
 });

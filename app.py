@@ -3,12 +3,11 @@ import os
 import numpy as np
 import pandas as pd
 from flask import Flask, request, jsonify
-from dotenv import load_dotenv
 
-load_dotenv()
 app = Flask(__name__)
-app.config["WEATHER_API_KEY"] = os.getenv("WEATHER_API_KEY")
 
+# --- ML MODEL TRAINING SECTION ---
+# We simulate training a model based on historical Andheri water data
 def train_model():
     # Synthetic historical data for Andheri (Past 100 days)
     # Features: [Population_Scaled, Avg_Temp, Festival_Impact_Binary]
